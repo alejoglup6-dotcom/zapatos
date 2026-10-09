@@ -2,17 +2,21 @@ services:
   - type: web
     name: tienda-zapatos
     runtime: node
-    plan: starter          # el disco persistente requiere un plan de pago
+    plan: free
     buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /healthz
-    disk:
-      name: datos
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
-      - key: DATA_DIR
-        value: /var/data
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
       - key: ADMIN_PASSWORD
         sync: false        # la escribes tú en el panel de Render
       - key: SESSION_SECRET

@@ -3,18 +3,17 @@
    Variables de entorno:
      ADMIN_PASSWORD  contraseña del administrador (obligatoria para editar)
      SESSION_SECRET  texto largo aleatorio para firmar la sesión (recomendado)
-     DATA_DIR        carpeta donde se guardan datos y fotos (en Render: el disco, /var/data)
+     DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME   conexión a MySQL (o bien DATABASE_URL)
+     DB_SSL          pon "true" si tu proveedor exige SSL
      PORT            lo pone Render automáticamente                                   */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const fsp = fs.promises;
+const mysql = require("mysql2/promise");
 
 const PORT = +process.env.PORT || 3000;
-const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, "data");
-const UP_DIR = path.join(DATA_DIR, "uploads");
-const DB_FILE = path.join(DATA_DIR, "tienda.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const SECRET = process.env.SESSION_SECRET || crypto.createHash("sha256").update("tienda:" + ADMIN_PASSWORD).digest("hex");
@@ -28,7 +27,16 @@ const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; cha
 
 if (!ADMIN_PASSWORD) console.warn("⚠ Falta ADMIN_PASSWORD: nadie podrá entrar al modo administrador.");
 
-fs.mkdirSync(UP_DIR, { recursive: true });
+/* ---------- MySQL ---------- */
+const dbConfig = process.env.DATABASE_URL
+  ? { uri: process.env.DATABASE_URL }
+  : {
+      host: process.env.DB_HOST, port: +process.env.DB_PORT || 3306,
+      user: process.env.DB_USER, password: process.env.DB_PASSWORD, database: process.env.DB_NAME,
+    };
+const pool = mysql.createPool(Object.assign({
+  waitForConnections: true, connectionLimit: 5, charset: "utf8mb4", connectTimeout: 15000,
+}, dbConfig, process.env.DB_SSL === "true" ? { ssl: { rejectUnauthorized: false } } : {}));
 
 /* ---------- Validación ---------- */
 const str = (v, max) => String(v == null ? "" : v).trim().slice(0, max);
@@ -76,20 +84,26 @@ function cleanProduct(p) {
   return out;
 }
 
-/* ---------- Almacenamiento ---------- */
+/* ---------- Almacenamiento (MySQL) ---------- */
 let state = { tienda: cleanTienda({}), productos: [] };
-try {
-  const j = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
-  state = { tienda: cleanTienda(j.tienda), productos: (j.productos || []).map(cleanProduct).filter(Boolean) };
-} catch (e) { /* primera ejecución */ }
+
+async function initDb() {
+  await pool.query("CREATE TABLE IF NOT EXISTS tienda_estado (id TINYINT PRIMARY KEY, datos LONGTEXT NOT NULL, actualizado TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) CHARACTER SET utf8mb4");
+  await pool.query("CREATE TABLE IF NOT EXISTS fotos (nombre VARCHAR(64) PRIMARY KEY, tipo VARCHAR(20) NOT NULL, datos LONGBLOB NOT NULL, creada TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+  const [rows] = await pool.query("SELECT datos FROM tienda_estado WHERE id = 1");
+  if (rows.length) {
+    try {
+      const j = JSON.parse(rows[0].datos);
+      state = { tienda: cleanTienda(j.tienda), productos: (j.productos || []).map(cleanProduct).filter(Boolean) };
+    } catch (e) { console.error("No se pudo leer el estado guardado:", e.message); }
+  }
+}
 
 let chain = Promise.resolve();
 function exclusive(fn) { const r = chain.then(fn); chain = r.catch(() => {}); return r; }
 
 async function saveState() {
-  const tmp = DB_FILE + "." + process.pid + ".tmp";
-  await fsp.writeFile(tmp, JSON.stringify(state));
-  await fsp.rename(tmp, DB_FILE);
+  await pool.query("INSERT INTO tienda_estado (id, datos) VALUES (1, ?) ON DUPLICATE KEY UPDATE datos = VALUES(datos)", [JSON.stringify(state)]);
 }
 function magicOk(b, type) {
   if (type === "jpeg") return b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
@@ -99,21 +113,26 @@ function magicOk(b, type) {
 async function persistPhotos(list) {
   const out = [];
   for (const f of list) {
-    if (UP_RE.test(f)) { if (fs.existsSync(path.join(DATA_DIR, f))) out.push(f); continue; }
+    if (UP_RE.test(f)) {
+      const [r] = await pool.query("SELECT 1 FROM fotos WHERE nombre = ?", [f.slice(9)]);
+      if (r.length) out.push(f);
+      continue;
+    }
     const m = /^data:image\/(jpeg|png|webp);base64,(.+)$/.exec(f);
     if (!m) continue;
     const buf = Buffer.from(m[2], "base64");
     if (buf.length > MAX_PHOTO || !magicOk(buf, m[1])) throw httpErr(400, "Una de las fotos no es válida o pesa demasiado.");
     const name = crypto.randomBytes(12).toString("hex") + "." + (m[1] === "jpeg" ? "jpg" : m[1]);
-    await fsp.writeFile(path.join(UP_DIR, name), buf);
+    await pool.query("INSERT INTO fotos (nombre, tipo, datos) VALUES (?, ?, ?)", [name, "image/" + m[1], buf]);
     out.push("/uploads/" + name);
   }
   return out;
 }
 async function cleanupUploads() {
-  const used = new Set();
-  state.productos.forEach((p) => p.fotos.forEach((f) => used.add(path.basename(f))));
-  for (const f of await fsp.readdir(UP_DIR)) if (!used.has(f)) await fsp.unlink(path.join(UP_DIR, f)).catch(() => {});
+  const used = [];
+  state.productos.forEach((p) => p.fotos.forEach((f) => used.push(path.basename(f))));
+  if (!used.length) return void (await pool.query("DELETE FROM fotos"));
+  await pool.query("DELETE FROM fotos WHERE nombre NOT IN (?)", [used]);
 }
 
 /* ---------- Sesión de administrador ---------- */
@@ -224,7 +243,12 @@ const server = http.createServer(async (req, res) => {
     if (p === "/healthz") { res.writeHead(200, { "Content-Type": "text/plain" }); return res.end("ok"); }
     if (p.startsWith("/api/")) return await api(req, res, p);
     if (req.method !== "GET" && req.method !== "HEAD") throw httpErr(405, "Método no permitido.");
-    if (UP_RE.test(p)) return await serveFile(req, res, path.join(DATA_DIR, p), "public, max-age=2592000, immutable");
+    if (UP_RE.test(p)) {
+      const [r] = await pool.query("SELECT tipo, datos FROM fotos WHERE nombre = ?", [p.slice(9)]);
+      if (!r.length) return json(res, 404, { error: "No encontrado." });
+      res.writeHead(200, { "Content-Type": r[0].tipo, "Content-Length": r[0].datos.length, "Cache-Control": "public, max-age=2592000, immutable" });
+      return res.end(req.method === "HEAD" ? undefined : r[0].datos);
+    }
     if (p === "/") p = "/index.html";
     const file = path.join(PUBLIC_DIR, p);
     if (!file.startsWith(PUBLIC_DIR + path.sep)) throw httpErr(404, "No encontrado.");
@@ -235,4 +259,9 @@ const server = http.createServer(async (req, res) => {
     json(res, 500, { error: "Error del servidor." });
   }
 });
-server.listen(PORT, () => console.log("Tienda lista en el puerto " + PORT + " · datos en " + DATA_DIR));
+initDb().then(() => {
+  server.listen(PORT, () => console.log("Tienda lista en el puerto " + PORT + " · datos en MySQL"));
+}).catch((e) => {
+  console.error("No se pudo conectar a MySQL:", e.code || "", e.message);
+  process.exit(1);
+});

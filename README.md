@@ -22,3 +22,19 @@ Sin disco (plan gratuito) los artículos y fotos se borran en cada reinicio o de
 
 ## Respaldo
 Todo está en la carpeta DATA_DIR: tienda.json y uploads/. Copiarla es el respaldo.
+
+
+## Base de datos MySQL (versión actual)
+
+Los artículos y las fotos se guardan en MySQL, así que ya no hace falta disco en Render
+y el plan gratuito sirve. En Render > Environment crea estas variables:
+
+    DB_HOST       dal.gsdb.qorehost.com
+    DB_PORT       3306
+    DB_USER       (tu usuario de MySQL)
+    DB_PASSWORD   (tu contraseña de MySQL)
+    DB_NAME       s119_Zapatos
+    ADMIN_PASSWORD  (la contraseña del panel de la tienda)
+
+Las tablas (`tienda_estado` y `fotos`) se crean solas al arrancar.
+Si tu proveedor exige SSL, añade DB_SSL=true. Nunca pongas la contraseña dentro del código.
