@@ -1,7 +1,7 @@
 
 (function(){
 "use strict";
-var S={tienda:{nombre:"Tienda de zapatos",ciudad:"",whatsapp:"",direccion:"",horario:"",bienvenida:""},productos:[]};
+var S={tienda:{nombre:"PcuecaSport",ciudad:"",whatsapp:"",direccion:"",horario:"",bienvenida:"¡Zapatos que aguantan la masticada de verdad!"},productos:[]};
 var $=function(s,r){return (r||document).querySelector(s)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
 var money=function(n){return "$ "+Number(n).toLocaleString("es-CO")};
@@ -114,7 +114,7 @@ function renderHome(el){
   var t=S.tienda;
   el.innerHTML='<header class="top glass"><div class="row"><div><div class="logo">'+esc(t.nombre)+'</div><div class="city">'+esc(t.ciudad)+'</div></div><a class="circle neu-sm press" id="hwa" href="'+waGeneral()+'" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">'+ICO.wa+'</a></div>'+
   '<form class="search neu-in" id="sform" role="search">'+ICO.search+'<input id="q" type="search" placeholder="Buscar zapatos" aria-label="Buscar zapatos" value="'+esc(q)+'" autocomplete="off"></form></header>'+
-  '<div class="wrap">'+adminBar()+'<section class="hero-banner"><div class="hero-copy"><span class="eyebrow">NUEVA TEMPORADA · ESTILO EN MOVIMIENTO</span><h1>Camina distinto.<br><em>Vive tu ritmo.</em></h1><p>'+(esc(t.bienvenida||'Descubre calzado diseñado para acompañar cada paso con personalidad.'))+'</p><a class="btn pri press" href="#catalogo">Explorar colección <span>↗</span></a></div><div class="hero-orbit"><div class="orbit-ring"></div><div class="hero-shoe">'+(S.productos[0]?illu(S.productos[0]):shoe("sneaker","#8db5e9","#dbeafe"))+'</div><span class="hero-float f1">✦ Comodidad</span><span class="hero-float f2">★ Favoritos</span></div></section></div>'+
+  '<div class="wrap">'+adminBar()+'<section class="hero-banner"><div class="hero-copy"><span class="eyebrow">PCUECA SPORT · ZAPATOS CON ACTITUD</span><h1>¡Aguantan la<br><em>masticada!</em></h1><p>'+(esc(t.bienvenida||'Calzado con personalidad, resistencia y estilo para cada aventura.'))+'</p><a class="btn pri press" href="#catalogo">Ver la colección <span>↗</span></a></div><div class="hero-orbit"><div class="orbit-ring"></div><div class="hero-shoe hero-real-shoe"><div class="shoe-glow"></div><div class="shoe-art">🐶👟</div><span class="bite-mark">✦</span></div><span class="hero-float f1">✦ Resistente</span><span class="hero-float f2">★ Favoritos</span></div></section></div>'+
   '<nav class="cats" id="cats" aria-label="Categorías"></nav>'+
   '<main class="wrap" id="catalogo"><div class="section-heading"><div><span class="eyebrow">SELECCIÓN CURADA</span><h2>Encuentra tu próximo par</h2></div><span class="catalog-count" id="catalog-count"></span></div><div class="grid" id="grid"></div></main>'+
   '<div class="wrap"><footer><div class="box neu"><h4>'+esc(t.nombre)+'</h4>'+(t.direccion?'<p>'+esc(t.direccion)+', '+esc(t.ciudad)+'</p>':'<p>'+esc(t.ciudad)+'</p>')+(t.horario?'<p>'+esc(t.horario)+'</p>':'')+'<p style="margin-top:14px"><a class="btn wa press" id="fwa" href="'+waGeneral()+'" target="_blank" rel="noopener">Escribir por WhatsApp</a></p>'+(admin?'':'<p style="margin-top:6px"><button class="btn neu-sm sm press" data-act="login" type="button">Acceso administrador</button></p>')+'</div></footer></div>'+previewPill();
