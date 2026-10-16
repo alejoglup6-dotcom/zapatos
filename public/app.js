@@ -106,7 +106,7 @@ function adminBar(){
 function previewPill(){return (admin&&preview)?'<button class="btn pri floatpill press" data-act="unpreview">Volver al modo administrador</button>':""}
 
 function render(){
-  var el=$("#app");document.title=S.tienda.nombre;
+  var el=$("#app");document.title=S.tienda.nombre;el.classList.remove("page-enter");void el.offsetWidth;el.classList.add("page-enter");
   if(route.n==="p"){var p=findP(route.id);if(p&&(p.visible||isAdmin()))return renderDetail(el,p);route={n:"home"}}
   renderHome(el);
 }
