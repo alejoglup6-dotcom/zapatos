@@ -233,3 +233,34 @@ textarea.inp{padding:12px 16px;min-height:96px;resize:vertical}
 .totop.on{display:grid}
 .totop:active{transform:scale(.9)}
 @media(max-width:650px){.section-heading{flex-direction:column;align-items:flex-start}.cat-tools{width:100%;justify-content:space-between}}
+
+/* --- Rediseño estética tipo adidas --- */
+.topstrip{background:var(--brand);color:#fff;text-align:center;font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;padding:10px 14px}
+.topstrip+ .top{border-radius:0}
+.tilewall{display:flex;gap:14px;overflow-x:auto;padding:22px 16px 8px;scrollbar-width:none;scroll-snap-type:x proximity;max-width:1080px;margin:0 auto}
+.tilewall::-webkit-scrollbar{display:none}
+.tile{flex:none;width:205px;scroll-snap-align:start;border-radius:20px;overflow:hidden;background:var(--card);box-shadow:6px 6px 16px var(--sh-d),-6px -6px 16px var(--sh-l);transition:transform .35s var(--spring),box-shadow .35s}
+@media(hover:hover){.tile:hover{transform:translateY(-7px)}.tile:hover .tile-pic img{transform:scale(1.08)}}
+.tile-pic{aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;background:rgba(113,53,45,.07)}
+.tile-pic img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.tile-pic svg{width:74%}
+.tile-lbl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.tile-lbl i{font-style:normal;font-size:11px;font-weight:700;color:var(--ink-soft)}
+.section-heading h2{text-transform:uppercase;font-weight:800;letter-spacing:-.02em}
+.catsbar .cats button{background:none;box-shadow:none!important;padding:12px 2px;margin-right:20px;border-radius:0;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.catsbar .cats button:hover{transform:none!important}
+.catsbar .cats button.on{color:var(--brand)!important;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:9px;text-decoration-color:var(--brand)}
+@media(hover:hover){
+  .grid .card{border:1px solid rgba(113,53,45,.12);border-radius:22px;box-shadow:4px 4px 14px var(--sh-d),-4px -4px 14px var(--sh-l);overflow:hidden;transition:transform .35s var(--spring),box-shadow .35s}
+  .grid .card:hover{animation:none;transform:translateY(-8px);box-shadow:12px 18px 36px var(--sh-d),-6px -6px 18px var(--sh-l)}
+}
+.grid .card{border:1px solid rgba(113,53,45,.12);border-radius:22px;overflow:hidden}
+.grid .card .pic{border-radius:0;box-shadow:none;background:rgba(113,53,45,.07)}
+.grid .card .meta{padding:14px 14px 16px}
+.grid .card .meta h3{font-weight:800}
+.brandn{text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:700;color:var(--ink-soft)}
+.price{font-weight:800;font-size:17px}
+.price .old{text-decoration:line-through;color:var(--ink-soft);font-weight:600;font-size:13px;margin-left:6px}
+.tag{text-transform:uppercase;letter-spacing:.05em;font-size:10px;padding:5px 10px}
+.hero-copy h1{text-transform:uppercase}
+.detail .info h1{text-transform:uppercase;letter-spacing:-.02em}
