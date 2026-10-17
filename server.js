@@ -78,6 +78,7 @@ function cleanProduct(p) {
     para: PARA.includes(p.para) ? p.para : "Unisex",
     descripcion: str(p.descripcion, 900), precio, precioAntes, tallas, fotos,
     visible: p.visible !== false,
+    creado: Number(p.creado) > 0 && Number(p.creado) < 4102444800000 ? Number(p.creado) : 0,
   };
   const i = p.ilu;
   if (i && ["sneaker", "sandal", "loafer"].includes(i.k) && /^#[0-9a-f]{6}$/i.test(i.c) && /^#[0-9a-f]{6}$/i.test(i.s)) out.ilu = { k: i.k, c: i.c, s: i.s };
