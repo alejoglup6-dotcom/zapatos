@@ -10,7 +10,7 @@ var PARA=["Mujer","Hombre","Niños","Unisex"];
 var DEF_ILU={Tenis:{k:"sneaker",c:"#e3e9f4",s:"#c5cee0"},Sandalias:{k:"sandal",c:"#c58a54",s:"#efe6d8"},Zapatos:{k:"loafer",c:"#3b2a20",s:"#20150e"},Botas:{k:"loafer",c:"#5a3a22",s:"#2a1a10"},Infantil:{k:"sneaker",c:"#f2a65a",s:"#fff"},Otros:{k:"sneaker",c:"#cdd6e6",s:"#aab6cd"}};
 
 var admin=false,preview=false,A=null,U=null;
-var route={n:"home"},cat="Todo",q="",ord={z:null,q:1},F=null,busy=false;
+var route={n:"home"},cat="Todo",q="",ord={z:null,q:1},F=null,busy=false,srt="dest";
 
 /* ---------- Ilustraciones de respaldo (cuando no hay fotos) ---------- */
 function shoe(k,c,s){
@@ -95,6 +95,9 @@ function waLink(p,z,n){
 function waGeneral(){var num=waNumber();return num?"https://wa.me/"+num+"?text="+encodeURIComponent("Hola, quisiera más información sobre el calzado."):"#"}
 
 /* ---------- Render ---------- */
+function measureHead(){var h=document.querySelector(".top");document.documentElement.style.setProperty("--hh",(h?h.offsetHeight:0)+"px")}
+window.addEventListener("resize",measureHead);
+
 var ICO={wa:'<svg viewBox="0 0 24 24" style="fill:var(--ok);stroke:none"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.500 6.500 0 01-3.200-2.800c-.2-.4.2-.4.7-1.300.1-.2 0-.3 0-.5l-.7-1.600c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3-.2.300-.9.900-.9 2.200s.9 2.500 1 2.700c.1.200 1.800 2.800 4.400 3.900 1.600.7 2.200.7 3 .6.500-.1 1.400-.6 1.600-1.200.2-.6.2-1.100.1-1.200l-.5-.3z"/></svg>',
  back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
  search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>'};
@@ -107,17 +110,18 @@ function previewPill(){return (admin&&preview)?'<button class="btn pri floatpill
 
 function render(){
   var el=$("#app");document.title=S.tienda.nombre;el.classList.remove("page-enter");void el.offsetWidth;el.classList.add("page-enter");
-  if(route.n==="p"){var p=findP(route.id);if(p&&(p.visible||isAdmin()))return renderDetail(el,p);route={n:"home"}}
-  renderHome(el);
+  if(route.n==="p"){var p=findP(route.id);if(p&&(p.visible||isAdmin())){renderDetail(el,p);measureHead();return}route={n:"home"}}
+  renderHome(el);measureHead();
 }
 function renderHome(el){
   var t=S.tienda;
   el.innerHTML='<header class="top glass"><div class="row"><div><div class="logo">'+esc(t.nombre)+'</div><div class="city">'+esc(t.ciudad)+'</div></div><a class="circle neu-sm press" id="hwa" href="'+waGeneral()+'" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">'+ICO.wa+'</a></div>'+
   '<form class="search neu-in" id="sform" role="search">'+ICO.search+'<input id="q" type="search" placeholder="Buscar zapatos" aria-label="Buscar zapatos" value="'+esc(q)+'" autocomplete="off"></form></header>'+
   '<div class="wrap">'+adminBar()+'</div>'+
-  '<nav class="cats" id="cats" aria-label="Categorías"></nav>'+
-  '<main class="wrap" id="catalogo"><div class="section-heading"><div><span class="eyebrow">SELECCIÓN CURADA</span><h2>Encuentra tu próximo par</h2></div><span class="catalog-count" id="catalog-count"></span></div><div class="grid" id="grid"></div></main>'+
+  '<div class="catsbar"><nav class="cats" id="cats" aria-label="Categorías"></nav></div>'+
+  '<main class="wrap" id="catalogo"><div class="section-heading"><div><span class="eyebrow">SELECCIÓN CURADA</span><h2>Encuentra tu próximo par</h2></div><div class="cat-tools"><select class="sortsel" id="sortsel" aria-label="Ordenar artículos"><option value="dest">Ordenar: Destacados</option><option value="asc">Precio: menor a mayor</option><option value="desc">Precio: mayor a menor</option><option value="nue">Más recientes</option><option value="dcto">Mayor descuento</option></select><span class="catalog-count" id="catalog-count"></span></div></div><div class="grid" id="grid"></div></main>'+
   '<div class="wrap"><section class="hero-banner"><div class="hero-copy"><span class="eyebrow">PCUECA SPORT · ZAPATOS CON ACTITUD</span><h1>¡Aguantan la<br><em>masticada!</em></h1><p>'+(esc(t.bienvenida||'Calzado con personalidad, resistencia y estilo para cada aventura.'))+'</p><div class="delivery-note">⌖ Domicilios en todo el perímetro de Santa Marta</div><a class="btn pri press" href="#catalogo">Ver los zapatos <span>↗</span></a></div><div class="hero-orbit"><div class="orbit-ring"></div><div class="hero-shoe hero-real-shoe"><div class="shoe-glow"></div><img src="/pcueca-emblema.png" alt="PcuecaSport perros y zapatos"><span class="bite-mark">✦</span></div><span class="hero-float f1">✦ Resistente</span><span class="hero-float f2">★ Favoritos</span></div></section></div>'+
+  (function(){var s=[];visibles().forEach(function(x){if(s.indexOf(x.categoria)<0)s.push(x.categoria)});return '<div class="wrap seoblock"><h2>ZAPATOS Y TENIS EN SANTA MARTA</h2><p>En '+esc(t.nombre)+' encontrarás tenis, zapatos, sandalias, botas y calzado infantil para hombre, mujer y niños. Calzado resistente y con estilo, con domicilio en todo el perímetro de Santa Marta y pedidos directos por WhatsApp.</p><ul>'+s.map(function(x){return '<li><a href="#/" data-crumb="'+esc(x)+'">'+esc(x)+'</a></li>'}).join("")+'</ul></div>'})()+
   '<div class="wrap"><footer><div class="box neu"><h4>'+esc(t.nombre)+'</h4>'+(t.direccion?'<p>'+esc(t.direccion)+', '+esc(t.ciudad)+'</p>':'<p>'+esc(t.ciudad)+'</p>')+(t.horario?'<p>'+esc(t.horario)+'</p>':'')+'<p style="margin-top:14px"><a class="btn wa press" id="fwa" href="'+waGeneral()+'" target="_blank" rel="noopener">Escribir por WhatsApp</a></p>'+(admin?'':'<p style="margin-top:6px"><button class="btn neu-sm sm press" data-act="login" type="button">Acceso administrador</button></p>')+'</div></footer></div>'+previewPill();
   renderCats();renderGrid();
 }
@@ -128,13 +132,15 @@ function renderCats(){
   $("#cats").innerHTML=set.map(function(c){return '<button class="neu-sm press'+(c===cat?' on':'')+'" data-cat="'+esc(c)+'">'+esc(c)+'</button>'}).join("");
 }
 function cardHTML(p){
-  var tot=totalU(p),low=tot>0&&tot<=5,img=p.fotos&&p.fotos[0]?'<img src="'+p.fotos[0]+'" alt="'+esc(p.nombre)+'" loading="lazy">':illu(p);
+  var tot=totalU(p),low=tot>0&&tot<=5,img=p.fotos&&p.fotos[0]?'<img src="'+p.fotos[0]+'" alt="'+esc(p.nombre)+'" loading="lazy">'+(p.fotos[1]?'<img class="alt" src="'+p.fotos[1]+'" alt="" loading="lazy">':''):illu(p);
   var off=p.precioAntes>p.precio?Math.round((1-p.precio/p.precioAntes)*100):0;
-  var tags=(!p.visible?'<span class="tag gray">Oculto</span>':'')+(tot===0?'<span class="tag gray">Agotado</span>':(low?'<span class="tag warn">Pocas unidades</span>':''))+(off&&tot>0?'<span class="tag">-'+off+'%</span>':'');
+  var tags=(isNew(p)?'<span class="tag new">Nuevo</span>':'')+(!p.visible?'<span class="tag gray">Oculto</span>':'')+(tot===0?'<span class="tag gray">Agotado</span>':(low?'<span class="tag warn">Pocas unidades</span>':''))+(off&&tot>0?'<span class="tag">-'+off+'%</span>':'');
   return '<article class="card neu in" data-id="'+esc(p.id)+'"><a href="#/p/'+esc(p.id)+'" data-go="'+esc(p.id)+'" aria-label="Ver '+esc(p.nombre)+'"><div class="pic neu-in">'+img+'<div class="tags">'+tags+'</div></div>'+
   '<div class="meta"><h3>'+esc(p.nombre)+'</h3><div class="brandn">'+esc(p.marca||p.categoria)+'</div><div class="price">'+money(p.precio)+(p.precioAntes>p.precio?'<span class="old">'+money(p.precioAntes)+'</span>':'')+'</div></div></a>'+
   (isAdmin()?'<div class="arow"><button class="neu-sm press" data-act="edit" data-id="'+esc(p.id)+'">Editar</button><button class="neu-sm press" data-act="toggle" data-id="'+esc(p.id)+'">'+(p.visible?'Ocultar':'Publicar')+'</button><button class="neu-sm press danger" data-act="del" data-id="'+esc(p.id)+'">Eliminar</button></div>':'')+'</article>';
 }
+function isNew(p){return !!(p.creado&&Date.now()-p.creado<14*86400000)}
+function disc(p){return p.precioAntes>p.precio?1-p.precio/p.precioAntes:0}
 function renderGrid(){
   var qq=q.trim().toLowerCase();
   var l=visibles().filter(function(p){
@@ -142,6 +148,12 @@ function renderGrid(){
     if(qq&&(p.nombre+" "+p.marca+" "+p.categoria+" "+p.para).toLowerCase().indexOf(qq)<0)return false;
     return true;
   });
+  if(srt==="asc")l.sort(function(a,b){return a.precio-b.precio});
+  else if(srt==="desc")l.sort(function(a,b){return b.precio-a.precio});
+  else if(srt==="nue")l.sort(function(a,b){return (b.creado||0)-(a.creado||0)});
+  else if(srt==="dcto")l.sort(function(a,b){return disc(b)-disc(a)});
+  var c=$("#catalog-count");if(c)c.textContent=l.length+(l.length===1?" artículo":" artículos");
+  var ss=$("#sortsel");if(ss&&ss.value!==srt)ss.value=srt;
   var g=$("#grid");
   if(l.length)g.innerHTML=l.map(cardHTML).join("");
   else g.innerHTML='<div class="empty neu-in">'+(S.productos.length?'No encontramos artículos con esa búsqueda.':'Aún no hay artículos publicados.'+(isAdmin()?' Usa “Nuevo artículo” para crear el primero.':''))+'</div>';
@@ -156,8 +168,8 @@ function renderDetail(el,p){
   var thumbs=fotos&&fotos.length>1?'<div class="thumbs" id="thumbs">'+fotos.map(function(s,i){return '<button class="neu-sm'+(i===0?' on':'')+'" data-th="'+i+'" aria-label="Ver foto '+(i+1)+'"><img src="'+s+'" alt=""></button>'}).join('')+'</div>':'';
   var off=p.precioAntes>p.precio?Math.round((1-p.precio/p.precioAntes)*100):0;
   el.innerHTML='<header class="top glass"><div class="row"><a class="back neu-sm press" href="#/" data-go="">'+ICO.back+' Volver</a><div class="logo" style="font-size:26px">'+esc(t.nombre)+'</div><span style="width:44px"></span></div></header>'+
-  '<div class="wrap">'+adminBar()+'<div class="detail"><section aria-label="Fotos"><div class="gal neu" id="gal">'+slides+'</div>'+thumbs+'</section>'+
-  '<section class="info"><h1>'+esc(p.nombre)+'</h1><div class="bn">'+esc([p.marca,p.categoria,p.para].filter(Boolean).join(" · "))+(!p.visible?' · Oculto para clientes':'')+'</div>'+
+  '<div class="wrap">'+adminBar()+'<nav class="crumbs" aria-label="Ruta de navegación"><a href="#/" data-go="">Inicio</a> <span>/</span> <a href="#/" data-crumb="'+esc(p.categoria)+'">'+esc(p.categoria)+'</a> <span>/</span> <b>'+esc(p.nombre)+'</b></nav><div class="detail"><section aria-label="Fotos"><div class="gal neu" id="gal">'+slides+'</div>'+thumbs+'</section>'+
+  '<section class="info"><h1>'+esc(p.nombre)+'</h1><div class="bn">'+esc([p.marca,p.categoria,p.para].filter(Boolean).join(" · "))+(isNew(p)?' · Nuevo':'')+(!p.visible?' · Oculto para clientes':'')+'</div>'+
   '<div class="bigprice">'+money(p.precio)+(p.precioAntes>p.precio?'<span class="old">'+money(p.precioAntes)+'</span><span class="off">-'+off+'%</span>':'')+'</div>'+
   (p.descripcion?'<p class="desc">'+esc(p.descripcion)+'</p>':'')+
   '<div class="lbl">Talla</div><div class="sizes" id="sizes">'+tallas.map(function(x){return '<button class="neu-sm press'+(+x.u<=0?' out':'')+'" data-z="'+esc(x.t)+'" '+(+x.u<=0?'disabled ':'')+'aria-label="Talla '+esc(x.t)+(+x.u<=0?' agotada':'')+'">'+esc(x.t)+'</button>'}).join('')+'</div><div class="stocknote" id="snote"></div>'+
@@ -208,7 +220,7 @@ function closeSheet(now){
 }
 
 /* ---------- Formulario de artículo ---------- */
-function blank(){return {id:null,nombre:"",marca:"",categoria:"Tenis",para:"Unisex",descripcion:"",precio:"",precioAntes:"",tallas:[{t:"",u:""}],fotos:[],visible:true,ilu:null}}
+function blank(){return {id:null,nombre:"",marca:"",categoria:"Tenis",para:"Unisex",descripcion:"",precio:"",precioAntes:"",tallas:[{t:"",u:""}],fotos:[],visible:true,ilu:null,creado:0}}
 function openProduct(p){
   F=p?JSON.parse(JSON.stringify(p)):blank();
   if(p){F.precio=String(p.precio);F.precioAntes=p.precioAntes?String(p.precioAntes):"";F.tallas=F.tallas.length?F.tallas:[{t:"",u:""}]}
@@ -260,7 +272,7 @@ function saveProduct(){
   var tallas=F.tallas.filter(function(r){return String(r.t).trim()!==""}).map(function(r){return {t:String(r.t).trim(),u:Math.max(0,parseInt(r.u,10)||0)}});
   if(!tallas.length){err.textContent="Agrega al menos una talla (usa “Única” si no aplica).";return}
   var seen={};for(var i=0;i<tallas.length;i++){if(seen[tallas[i].t.toLowerCase()]){err.textContent="La talla "+tallas[i].t+" está repetida.";return}seen[tallas[i].t.toLowerCase()]=1}
-  var item={id:F.id||("p"+Date.now().toString(36)),nombre:nombre,marca:F.marca.trim(),categoria:F.categoria,para:F.para,descripcion:F.descripcion.trim(),precio:precio,precioAntes:antes>precio?antes:0,tallas:sortSizes(tallas),fotos:F.fotos.slice(),visible:!!F.visible};
+  var item={id:F.id||("p"+Date.now().toString(36)),nombre:nombre,marca:F.marca.trim(),categoria:F.categoria,para:F.para,descripcion:F.descripcion.trim(),precio:precio,precioAntes:antes>precio?antes:0,tallas:sortSizes(tallas),fotos:F.fotos.slice(),visible:!!F.visible,creado:F.creado?+F.creado:(F.id?0:Date.now())};
   if(!item.fotos.length&&F.ilu)item.ilu=F.ilu;
   var list=S.productos.slice(),ix=-1;list.forEach(function(p,k){if(p.id===item.id)ix=k});
   if(ix>=0)list[ix]=item;else list.unshift(item);
@@ -296,6 +308,7 @@ document.addEventListener("input",function(e){
 });
 document.addEventListener("change",function(e){
   var t=e.target;
+  if(t.id==="sortsel"){srt=t.value;renderGrid();return}
   if(F&&t.dataset&&t.dataset.k){F[t.dataset.k]=t.type==="checkbox"?t.checked:t.value}
   if(t.id==="f-files"&&F){addPhotos(Array.prototype.slice.call(t.files))}
 });
@@ -305,6 +318,8 @@ document.addEventListener("click",async function(e){
   var go_=t.closest("[data-go]");
   if(go_&&!t.closest("[data-act]")){e.preventDefault();go(go_.dataset.go||null);return}
   var cb=t.closest("[data-cat]");if(cb){cat=cb.dataset.cat;renderCats();renderGrid();return}
+  var cm=t.closest("[data-crumb]");
+  if(cm){e.preventDefault();cat=cm.dataset.crumb;go(null);return}
   var z=t.closest("#sizes button");
   if(z&&!z.disabled){ord.z=z.dataset.z;ord.q=1;updateOrder(findP(route.id));return}
   if(t.closest("#qm")){ord.q--;updateOrder(findP(route.id));return}
@@ -356,6 +371,10 @@ document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.id=
 
 /* ---------- Inicio ---------- */
 parseHash();
+var toTop=document.createElement("button");toTop.id="totop";toTop.className="totop";toTop.setAttribute("aria-label","Volver arriba");toTop.type="button";toTop.textContent="↑";
+toTop.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"})});
+document.body.appendChild(toTop);
+window.addEventListener("scroll",function(){toTop.classList.toggle("on",window.scrollY>700)},{passive:true});
 $("#app").innerHTML='<p style="text-align:center;padding:80px 20px;color:var(--ink-soft)">Cargando tienda…</p>';
 (async function(){
   try{var m=await api("/api/me");admin=!!m.admin}catch(e){}
