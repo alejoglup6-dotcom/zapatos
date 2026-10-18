@@ -110,14 +110,14 @@ function render(){
 
 function renderHome(el){
   var t=S.tienda;
-  el.innerHTML='<div class="topstrip">ESTILO QUE SE MUEVE CONTIGO</div><header class="top glass"><div class="row"><div><div class="logo">'+esc(t.nombre)+'</div><div class="city">'+esc(t.ciudad)+'</div></div><a class="circle neu-sm press" id="hwa" href="'+waGeneral()+'" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">'+ICO.wa+'</a></div>'+
+  el.innerHTML='<div class="topstrip">Domicilio en Santa Marta · Pedidos por WhatsApp</div><header class="top glass"><div class="row"><div><div class="logo">'+esc(t.nombre)+'</div><div class="city">'+esc(t.ciudad)+'</div></div><a class="circle neu-sm press" id="hwa" href="'+waGeneral()+'" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">'+ICO.wa+'</a></div>'+
   '<form class="search neu-in" id="sform" role="search">'+ICO.search+'<input id="q" type="search" placeholder="Buscar zapatos" aria-label="Buscar zapatos" value="'+esc(q)+'" autocomplete="off"></form></header>'+
   '<div class="wrap">'+adminBar()+'</div>'+
   
-  // Banner principal arriba
-  '<div class="wrap"><section class="hero-banner"><div class="hero-copy"><span class="eyebrow">PCUECA SPORT · HOT SALE</span><h1>¡Aguantan la<br><em>masticada!</em></h1><p>'+(esc(t.bienvenida||'Calzado con personalidad, resistencia y estilo para cada aventura.'))+'</p><div class="delivery-note">⌖ Domicilios en Santa Marta</div><a class="btn pri press" href="#catalogo">Ver todo <span>→</span></a></div><div class="hero-orbit"><div class="orbit-ring"></div><div class="hero-shoe hero-real-shoe"><div class="shoe-glow"></div><img src="/pcueca-emblema.png" alt="PcuecaSport"><span class="bite-mark">✦</span></div></div></section></div>'+
+  // 1. Banner Principal (Arriba)
+  '<div class="wrap"><section class="hero-banner"><div class="hero-copy"><span class="eyebrow">PCUECA SPORT · ZAPATOS CON ACTITUD</span><h1>¡Aguantan la<br><em>masticada!</em></h1><p>'+(esc(t.bienvenida||'Calzado con personalidad, resistencia y estilo para cada aventura.'))+'</p><div class="delivery-note">⌖ Domicilios en todo el perímetro de Santa Marta</div><a class="btn pri press" href="#catalogo">Ver los zapatos <span>↗</span></a></div><div class="hero-orbit"><div class="orbit-ring"></div><div class="hero-shoe hero-real-shoe"><div class="shoe-glow"></div><img src="/pcueca-emblema.png" alt="PcuecaSport perros y zapatos"><span class="bite-mark">✦</span></div><span class="hero-float f1">✦ Resistente</span><span class="hero-float f2">★ Favoritos</span></div></section></div>'+
 
-  // Grilla de categorías 2x2 estilo Adidas
+  // 2. Grilla de Categorías 2x2
   (function(){
     var m={},o=[],v=visibles();
     v.forEach(function(p){
@@ -130,16 +130,18 @@ function renderHome(el){
     }).join("")+'</div></div>';
   })()+
 
-  // Sección Para quién compras
-  '<div class="wrap"><section class="gender-sec"><h2>¿PARA QUIÉN ESTÁS COMPRANDO?</h2><div class="gender-grid">'+
+  // 3. Sección Para Quién Compras
+  '<div class="wrap"><section class="gender-sec"><h2>¿Para quién estás comprando?</h2><div class="gender-grid">'+
   ['Mujer','Hombre','Niños','Unisex'].map(function(g){
-    return '<a href="#catalogo" data-cat="Todo" data-para="'+g+'" class="gender-item"><div class="gender-circle"><img src="https://ui-avatars.com/api/?name='+g+'&background=f0f0f0&color=000&size=128" alt="'+g+'"></div><span>'+g+'</span></a>'
+    return '<a href="#catalogo" data-cat="Todo" data-para="'+g+'" class="gender-item"><div class="gender-circle"><img src="https://ui-avatars.com/api/?name='+g+'&background=eee7d2&color=71352d&size=128" alt="'+g+'"></div><span>'+g+'</span></a>'
   }).join('')+'</div></section></div>'+
 
+  // 4. Catálogo
   '<div class="catsbar"><nav class="cats" id="cats" aria-label="Categorías"></nav></div>'+
+  '<main class="wrap" id="catalogo"><div class="section-heading"><div><span class="eyebrow">SELECCIÓN CURADA</span><h2>Encuentra tu próximo par</h2></div><div class="cat-tools"><select class="sortsel" id="sortsel" aria-label="Ordenar artículos"><option value="dest">Ordenar: Destacados</option><option value="asc">Precio: menor a mayor</option><option value="desc">Precio: mayor a menor</option><option value="nue">Más recientes</option><option value="dcto">Mayor descuento</option></select><span class="catalog-count" id="catalog-count"></span></div></div><div class="grid" id="grid"></div></main>'+
   
-  '<main class="wrap" id="catalogo"><div class="section-heading"><div><h2>ENCUENTRA TU PRÓXIMO PAR</h2></div><div class="cat-tools"><select class="sortsel" id="sortsel" aria-label="Ordenar artículos"><option value="dest">Destacados</option><option value="asc">Precio: menor a mayor</option><option value="desc">Precio: mayor a menor</option><option value="nue">Más recientes</option><option value="dcto">Mayor descuento</option></select><span class="catalog-count" id="catalog-count"></span></div></div><div class="grid" id="grid"></div></main>'+
-
+  // 5. SEO y Footer
+  (function(){var s=[];visibles().forEach(function(x){if(s.indexOf(x.categoria)<0)s.push(x.categoria)});return '<div class="wrap seoblock"><h2>ZAPATOS Y TENIS EN SANTA MARTA</h2><p>En '+esc(t.nombre)+' encontrarás tenis, zapatos, sandalias, botas y calzado infantil para hombre, mujer y niños. Calzado resistente y con estilo, con domicilio en todo el perímetro de Santa Marta y pedidos directos por WhatsApp.</p><ul>'+s.map(function(x){return '<li><a href="#/" data-crumb="'+esc(x)+'">'+esc(x)+'</a></li>'}).join("")+'</ul></div>'})()+
   '<div class="wrap"><footer><div class="box neu"><h4>'+esc(t.nombre)+'</h4>'+(t.direccion?'<p>'+esc(t.direccion)+', '+esc(t.ciudad)+'</p>':'<p>'+esc(t.ciudad)+'</p>')+(t.horario?'<p>'+esc(t.horario)+'</p>':'')+'<p style="margin-top:14px"><a class="btn wa press" id="fwa" href="'+waGeneral()+'" target="_blank" rel="noopener">Escribir por WhatsApp</a></p>'+(admin?'':'<p style="margin-top:6px"><button class="btn neu-sm sm press" data-act="login" type="button">Acceso administrador</button></p>')+'</div></footer></div>'+previewPill();
   renderCats();renderGrid();
 }
@@ -151,18 +153,22 @@ function renderCats(){
   $("#cats").innerHTML=set.map(function(c){return '<button class="neu-sm press'+(c===cat?' on':'')+'" data-cat="'+esc(c)+'">'+esc(c)+'</button>'}).join("");
 }
 
+// Tarjeta organizada (Precio arriba, título abajo) pero con estilo original
 function cardHTML(p){
   var tot=totalU(p),low=tot>0&&tot<=5,img=p.fotos&&p.fotos[0]?'<img src="'+p.fotos[0]+'" alt="'+esc(p.nombre)+'" loading="lazy">'+(p.fotos[1]?'<img class="alt" src="'+p.fotos[1]+'" alt="" loading="lazy">':''):illu(p);
   var off=p.precioAntes>p.precio?Math.round((1-p.precio/p.precioAntes)*100):0;
-  var tags=(isNew(p)?'<span class="tag new">Nuevo</span>':'')+(!p.visible?'<span class="tag gray">Oculto</span>':'')+(tot===0?'<span class="tag gray">Agotado</span>':(low?'<span class="tag warn">Últimas unidades</span>':''));
+  var tags=(isNew(p)?'<span class="tag new">Nuevo</span>':'')+(!p.visible?'<span class="tag gray">Oculto</span>':'')+(tot===0?'<span class="tag gray">Agotado</span>':(low?'<span class="tag warn">Pocas unidades</span>':''));
   
-  return '<article class="card adidas-style" data-id="'+esc(p.id)+'"><a href="#/p/'+esc(p.id)+'" data-go="'+esc(p.id)+'" aria-label="Ver '+esc(p.nombre)+'">'+
-  '<div class="pic">'+img+'</div>'+
+  var priceHtml = off>0 
+    ? '<div class="price-sale"><span class="new-price">'+money(p.precio)+'</span><span class="old-price">'+money(p.precioAntes)+'</span><span class="discount">-'+off+'%</span></div>'
+    : '<div class="price-normal">'+money(p.precio)+'</div>';
+
+  return '<article class="card neu in" data-id="'+esc(p.id)+'"><a href="#/p/'+esc(p.id)+'" data-go="'+esc(p.id)+'" aria-label="Ver '+esc(p.nombre)+'">'+
+  '<div class="pic neu-in">'+img+'<div class="tags">'+tags+'</div></div>'+
   '<div class="meta">'+
-    (off>0?'<div class="price-sale"><span class="new-price">'+money(p.precio)+'</span><span class="old-price">'+money(p.precioAntes)+'</span><span class="discount">-'+off+'%</span></div>':'<div class="price-normal">'+money(p.precio)+'</div>')+
+    priceHtml+
     '<h3>'+esc(p.nombre)+'</h3>'+
     '<div class="brandn">'+esc(p.marca||p.categoria)+'</div>'+
-    '<div class="tags-container">'+tags+'</div>'+
   '</div></a>'+
   (isAdmin()?'<div class="arow"><button class="neu-sm press" data-act="edit" data-id="'+esc(p.id)+'">Editar</button><button class="neu-sm press" data-act="toggle" data-id="'+esc(p.id)+'">'+(p.visible?'Ocultar':'Publicar')+'</button><button class="neu-sm press danger" data-act="del" data-id="'+esc(p.id)+'">Eliminar</button></div>':'')+'</article>';
 }
