@@ -40,6 +40,7 @@ const pool = mysql.createPool(Object.assign({
 
 /* ---------- Validación ---------- */
 const str = (v, max) => String(v == null ? "" : v).trim().slice(0, max);
+const escHtml = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 function int(v, min, max) {
   const n = parseInt(String(v == null ? "" : v).replace(/\D/g, ""), 10);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min;
@@ -167,7 +168,7 @@ function headers(res) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "same-origin");
   res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
 }
 function json(res, status, obj, extra) {
   const body = JSON.stringify(obj);
@@ -250,6 +251,36 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { "Content-Type": r[0].tipo, "Content-Length": r[0].datos.length, "Cache-Control": "public, max-age=2592000, immutable" });
       return res.end(req.method === "HEAD" ? undefined : r[0].datos);
     }
+    
+    // INYECCIÓN DE META TAGS (Open Graph) PARA VISTA PREVIA
+    if (p === "/" || p === "/index.html") {
+      try {
+        let html = await fsp.readFile(path.join(PUBLIC_DIR, "index.html"), "utf8");
+        const t = state.tienda;
+        const host = req.headers.host || "zapatos-8xb2.onrender.com";
+        const protocol = isHttps(req) ? "https" : "http";
+        const baseUrl = protocol + "://" + host;
+        
+        const metaTags = `
+    <meta property="og:title" content="${escHtml(t.nombre)} - ${escHtml(t.ciudad)}">
+    <meta property="og:description" content="${escHtml(t.bienvenida || 'Zapatos que aguantan la masticada de verdad.')}">
+    <meta property="og:image" content="${baseUrl}/pcueca-emblema.png">
+    <meta property="og:url" content="${baseUrl}/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escHtml(t.nombre)}">
+    <meta name="twitter:description" content="${escHtml(t.bienvenida || 'Zapatos que aguantan la masticada de verdad.')}">
+    <meta name="twitter:image" content="${baseUrl}/pcueca-emblema.png">`;
+        
+        html = html.replace("</head>", metaTags + "\n</head>");
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" });
+        return res.end(html);
+      } catch (err) {
+        console.error("Error inyectando meta tags:", err);
+        // Si falla, sigue al serveFile normal
+      }
+    }
+
     if (p === "/") p = "/index.html";
     const file = path.join(PUBLIC_DIR, p);
     if (!file.startsWith(PUBLIC_DIR + path.sep)) throw httpErr(404, "No encontrado.");
