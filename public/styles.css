@@ -17,6 +17,7 @@
   --bg:#332522;--ink:#f6ead0;--ink-soft:#d3bfa4;--brand:#e4ad69;--brand-2:#c56a42;--card:#3e2d28;--focus:#f0bd72;
   --sh-l:#60453a;--sh-d:#201614;--glass:rgba(62,45,40,.78);--glass-b:rgba(245,220,166,.22);--glass-sh:0 10px 40px rgba(35,18,12,.45);
 }
+/* Modo oscuro: fondos oscuros para que el texto claro se lea (los de arriba son claros) */
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]) body::before{background:linear-gradient(145deg,#241a17,#332522 48%,#1d1411);background-size:140% 140%}
   :root:not([data-theme="light"]) body::after{background:radial-gradient(ellipse at 20% 10%,rgba(170,80,60,.42),transparent 32%),radial-gradient(ellipse at 80% 30%,rgba(200,80,55,.26),transparent 28%);background-size:140% 130%}
@@ -51,13 +52,35 @@ img{max-width:100%;display:block}
 
 /* Cabecera */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;padding:14px 16px 16px;border-radius:0 0 28px 28px;border-top:0;animation:header-in .7s var(--spring) both}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1080px;margin:0 auto}
-.logo{font-family:'Playball',cursive;font-size:32px;line-height:1.05;color:var(--brand);text-shadow:0 4px 18px rgba(47,134,232,.24);transition:transform .4s var(--spring)}
-.logo:hover{transform:translateY(-2px) rotate(-2deg)}
-.city{font-size:13px;color:var(--ink-soft);font-weight:600}
+
+/* Corrección de Logo: Centrado, Fuente Legible y WhatsApp a la derecha */
+.row{display:flex;align-items:center;justify-content:center;gap:12px;max-width:1080px;margin:0 auto;position:relative;width:100%}
+.row > div{display:flex;flex-direction:column;align-items:center;text-align:center;}
+
+.logo{
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  font-size:26px;
+  line-height:1.1;
+  font-weight:800;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--brand);
+  text-shadow:0 4px 18px rgba(47,134,232,.24);
+  transition:transform .4s var(--spring);
+  margin:0;
+}
+.logo:hover{transform:translateY(-2px) scale(1.02)}
+
+.city{font-size:13px;color:var(--ink-soft);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+
+.row > a.circle{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+.row > a.circle:active{transform:translateY(-50%) scale(.95)}
+
 .circle{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none}
 .circle svg{width:22px;height:22px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.search{display:flex;align-items:center;max-width:1080px;margin:12px auto 0;height:48px;border-radius:99px;padding:0 20px;gap:10px}
+
+/* Barra de búsqueda */
+.search{display:flex;align-items:center;max-width:1080px;margin:16px auto 0;height:48px;border-radius:99px;padding:0 20px;gap:10px}
 .search input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:16px}
 .search input::placeholder{color:var(--ink-soft)}
 .search svg{width:20px;height:20px;stroke:var(--focus);fill:none;stroke-width:2;stroke-linecap:round}
@@ -80,7 +103,7 @@ img{max-width:100%;display:block}
 .cats button{flex:none;padding:10px 20px;border-radius:99px;font-weight:600;color:var(--ink-soft);transition:transform .35s var(--spring)}
 .cats button.on{color:var(--brand);box-shadow:inset 4px 4px 9px var(--sh-d),inset -4px -4px 9px var(--sh-l)}
 
-/* Grilla 2x2 de Categorías */
+/* Grilla 2x2 de Categorías (Estilo Adidas) */
 .tilewall{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0 10px}
 .tile{display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:var(--card);box-shadow:6px 6px 16px var(--sh-d),-6px -6px 16px var(--sh-l);transition:transform .35s var(--spring),box-shadow .35s;position:relative}
 .tile:hover{transform:translateY(-7px)}
